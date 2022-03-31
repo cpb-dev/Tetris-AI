@@ -1,5 +1,7 @@
 import pygame
 import random
+import controlAI
+
 
 pygame.font.init()
 
@@ -9,10 +11,10 @@ s_height = 700
 play_width = 300
 play_height = 600  
 block_size = 30
+fig = 0
 
 top_left_x = (s_width - play_width) // 2
 top_left_y = s_height - play_height
-
 
 # SHAPE FORMATS
 
@@ -121,15 +123,22 @@ T = [['.....',
 shapes = [S, Z, I, O, J, L, T]
 shape_colors = [(0, 255, 0), (255, 0, 0), (0, 255, 255), (255, 255, 0), (255, 165, 0), (0, 0, 255), (128, 0, 128)]
 
+class Figure:
+    figures = [
+        [[1, 5, 9, 13], [4, 5, 6, 7]],
+        [[1, 2, 5, 9], [0, 4, 5, 6], [1, 5, 9, 8], [4, 5, 6, 10]],
+        [[1, 2, 6, 10], [5, 6, 7, 9], [2, 6, 10, 11], [3, 5, 6, 7]],  
+        [[1, 4, 5, 6], [1, 4, 5, 9], [4, 5, 6, 9], [1, 5, 6, 9]],
+        [[1, 2, 5, 6]],
+    ]
 
-class Piece(object):
-    def __init__(self, x, y, shape):
+    def __init__(self, x, y, shape, fig):
+        fig = self.type = random.randint(0, len(self.figures) - 1)
         self.x = x
         self.y = y
         self.shape = shape
         self.color = shape_colors[shapes.index(shape)]
         self.rotation = 0
-
 
 def create_grid(locked_pos={}):
     grid = [[(0,0,0) for _ in range(10)] for _ in range(20)]
@@ -140,6 +149,7 @@ def create_grid(locked_pos={}):
                 c = locked_pos[(j,i)]
                 grid[i][j] = c
     return grid
+
 
 
 def convert_shape_format(shape):
@@ -181,7 +191,8 @@ def check_lost(positions):
 
 
 def get_shape():
-    return Piece(5, 0, random.choice(shapes))
+    return Figure(5, 0, random.choice(shapes), fig)
+
 
 
 def draw_text_middle(surface, text, size, color):
@@ -239,7 +250,7 @@ def draw_next_shape(shape, surface):
             if column == '0':
                 pygame.draw.rect(surface, shape.color, (sx + j*block_size, sy + i*block_size, block_size, block_size), 0)
 
-    surface.blit(label, (sx + 10, sy - 30))
+    surface.blit(label, (sx + 10, sy - 50))
 
 
 def update_score(nscore):
@@ -328,11 +339,11 @@ def main(win):  # *
                 current_piece.y -= 1
                 change_piece = True
 
-        for event in pygame.event.get():
+        for event in list(pygame.event.get()) + controlAI.run_ai(
+            grid, play_width, play_height, current_piece):
             if event.type == pygame.QUIT:
                 run = False
                 pygame.display.quit()
-
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     current_piece.x -= 1
@@ -350,6 +361,15 @@ def main(win):  # *
                     current_piece.rotation += 1
                     if not(valid_space(current_piece, grid)):
                         current_piece.rotation -= 1
+                if event.key == pygame.K_SPACE:
+                    dumb = 1
+                    current_piece.y += 22
+                    if not(valid_space(current_piece, grid)):
+                        current_piece.y -= dumb
+                        while(valid_space(current_piece, grid) == False):
+                            current_piece.y -= dumb
+                            
+                            
 
         shape_pos = convert_shape_format(current_piece)
 
@@ -379,7 +399,7 @@ def main(win):  # *
             update_score(score)
 
 
-def main_menu(win):  # *
+def main_menu(win):
     run = True
     while run:
         win.fill((0,0,0))
