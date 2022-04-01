@@ -121,67 +121,87 @@ def grid_conversion(grid):
 
 def fig_conversion(current_piece):
     fig = []
+    letter = ""
 
     fig = current_piece
 
     if current_piece == ['..0..' , '..0..' , '..0..' , '..0..' , '.....']:
         fig = [1, 5, 9, 13]
+        letter = I
 
     if current_piece == ['.....' , '0000.' , '.....' , '.....' , '.....']:
         fig = [4, 5, 6, 7]
+        letter = I
 
     if current_piece == ['.....' , '.....' , '..00.',  '.00..', '.....']:
         fig = [5, 6, 8, 9]
+        letter = S
 
     if current_piece == ['.....' , '..0..' , '..00.' , '...0.' , '.....']:
-      fig = [1, 5, 6, 10]
+        fig = [1, 5, 6, 10]
+        letter = S
         
     if current_piece == ['.....' , '.....' , '.00..' , '..00.' , '.....']:
         fig = [5, 6, 10, 11]
+        letter = Z
 
     if current_piece == ['.....', '..0..', '.00..', '.0...', '.....']:
-      fig = [1, 5, 4, 8]
+        fig = [1, 5, 4, 8]
+        letter = Z      
 
     if current_piece == ['.....' , '.....' , '.00..' , '.00..' , '.....']:
         fig = [1, 2, 5, 6]
-        
+        letter = O
+         
     if current_piece == ['.....', '..00.', '..0..', '..0..', '.....']:
-        fig = [1, 2, 5, 9] 
+        fig = [1, 2, 5, 9]
+        letter = J
         
     if current_piece == ['.....', '.0...', '.000.', '.....', '.....']:
         fig = [0, 4, 5, 6] 
+        letter = J
             
     if current_piece == ['.....', '..0..', '..0..', '.00..', '.....']:
-        fig = [1, 5, 9, 8] 
+        fig = [1, 5, 9, 8]
+        letter = J
                 
     if current_piece == ['.....', '.....', '.000.', '...0.', '.....']:
         fig = [4, 5, 6, 10] 
+        letter = J
 
     if current_piece == ['.....', '.00..', '..0..', '..0..', '.....']:
-        fig = [1, 2, 6, 10]   
+        fig = [1, 2, 6, 10]
+        letter = L
 
     if current_piece == ['.....', '.....', '.000.', '.0...', '.....']:
         fig = [5, 6, 7, 9]
+        letter = L
 
     if current_piece == ['.....', '..0..', '..0..', '..00.', '.....']:
         fig = [2, 6, 10, 11]
+        letter = L
 
     if current_piece == ['.....', '...0.', '.000.', '.....', '.....']:
-        fig = [3, 5, 6, 7] 
+        fig = [3, 5, 6, 7]
+        letter = L
 
     if current_piece == ['.....', '..0..', '.000.', '.....', '.....']:
         fig = [1, 4, 5, 6]
+        letter = T
 
     if current_piece == ['.....', '..0..', '.00..', '..0..', '.....']:
         fig = [1, 4, 5, 9]
+        letter = T
 
     if current_piece == ['.....', '.....', '.000.', '..0..', '.....']:
         fig = [4, 5, 6, 9]
+        letter = T
 
     if current_piece == ['.....', '..0..' , '..00.' , '..0..' , '.....']:
         fig = [1, 5, 6, 9]
+        letter = T
 
-    return fig
+    return fig, letter
 
 
 class Event():
@@ -200,24 +220,17 @@ def run_ai(grid, play_width, play_height, current_piece):
     counter += 1
     global holes
     holes = 0
-    piece_fig = fig_conversion(current_piece)
+    piece_fig, letter = fig_conversion(current_piece)
     play_height = 20
     play_width = 10
 
     # Depending on your PC this counter rate may need to be adjusted. More if system is faster and vice versa 
-    if counter < 3:
+    if counter < 50:
         return []
     counter = 0
     rotation, position = best_rot_pos(grid, play_width, play_height, current_piece, piece_fig)
-    if current_piece.rotation != rotation:
-        e = Event(pygame.KEYDOWN, pygame.K_UP)
-    elif current_piece.x < position:
-        e = Event(pygame.KEYDOWN, pygame.K_RIGHT)
-    elif current_piece.x > position:
-        e = Event(pygame.KEYDOWN, pygame.K_LEFT)
-    else:
-        e = Event(pygame.KEYDOWN, pygame.K_SPACE)
-    return [e]
+
+    return []
 
 
 # parameters and arguments might need changing in the future for this method, keep an eye on them if any issues occur.
@@ -308,10 +321,10 @@ def best_rot_pos(grid, play_width, play_height, current_piece, piece_fig):
                 holes, height = simulate(grid, j, 0, play_width, play_height, fig_shape, piece_fig)
             if best_pos is None or best_holes > holes or \
                 best_holes == holes and best_height > height:
-                best_height = height
-                best_holes = holes
-                best_pos = j
-                best_rot = rotation
+                    best_height = height
+                    best_holes = holes
+                    best_pos = j
+                    best_rot = rotation
 
     return best_rot, best_pos
 

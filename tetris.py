@@ -339,8 +339,7 @@ def main(win):  # *
                 current_piece.y -= 1
                 change_piece = True
 
-        for event in list(pygame.event.get()) + controlAI.run_ai(
-            grid, play_width, play_height, current_piece):
+        for event in list(pygame.event.get()):
             if event.type == pygame.QUIT:
                 run = False
                 pygame.display.quit()
