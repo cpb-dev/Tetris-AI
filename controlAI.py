@@ -1,5 +1,8 @@
+from tabnanny import check
 from turtle import pos, shape
 import pygame
+import numpy as np
+import pprint
 
 S = [['.....',
       '.....',
@@ -106,16 +109,20 @@ T = [['.....',
 
 def grid_conversion(grid):
 
-    new_grid = []
 
-    new_grid = grid
+    rows = 20
+    cols = 10
+    newer_grid = [[0 for k in range(cols)] for j in range(rows)]
 
+    new_grid = np.asarray(grid)
 
-    return new_grid
-    
+    return newer_grid
+
 
 def fig_conversion(current_piece):
     fig = []
+
+    fig = current_piece
 
     if current_piece == ['..0..' , '..0..' , '..0..' , '..0..' , '.....']:
         fig = [1, 5, 9, 13]
@@ -177,7 +184,6 @@ def fig_conversion(current_piece):
     return fig
 
 
-
 class Event():
     type = None
     key = None
@@ -185,14 +191,19 @@ class Event():
     def __init__(self, type, key):
         self.type = type
         self.key = key
-
+holes = 0
+prev_holes = 0
 counter = 0
-
 # Basic function to make the AI rotate endlessly, at the moment is useful to test if the two files work well together.
 def run_ai(grid, play_width, play_height, current_piece):
     global counter
     counter += 1
+    global holes
+    holes = 0
     piece_fig = fig_conversion(current_piece)
+    play_height = 20
+    play_width = 10
+
     # Depending on your PC this counter rate may need to be adjusted. More if system is faster and vice versa 
     if counter < 3:
         return []
@@ -214,20 +225,21 @@ def run_ai(grid, play_width, play_height, current_piece):
 def will_it_fit(grid, x, y, play_width, play_height, current_piece, piece_fig):
 
     will_it_fit = False
-    current_piece = fig_conversion(current_piece)
+    fig = fig_conversion(current_piece)
     new_grid = grid_conversion(grid)
     # Check in a 4 by 4 square (i and j) to see if it is out of bounds or not
+
+    # This loop checks if there is a single slot that the shape can fit into, if so then it can continue to testing that area.
     for i in range(4):
         for j in range(4):
-            if i * 4 + j in piece_fig:
+            if will_it_fit == True:
+                break
+            if i * 4 + j in fig:
                 if i + y > play_height - 1 or \
-                   j + x > play_width - 1 or \
-                   j + x < 0 or \
-                   new_grid[i + y][j + x] > 0:
-                       will_it_fit = True
-
-
-
+                    j + x > play_width - 1 or \
+                    j + x < 0 or \
+                    new_grid[i + y][j + x] > 0:
+                    will_it_fit = True
     return will_it_fit
 
 
@@ -239,20 +251,20 @@ def simulate(grid, x, y, play_width, play_height, current_piece, piece_fig):
     current_piece = fig_conversion(current_piece)
     while not will_it_fit(grid, x, y, play_width, play_height, current_piece, piece_fig):
         y += 1
-        print("it doesn't fit on this line")
     y-= 1
-
+    new_grid = grid_conversion(grid)
+    global holes
     height = play_height
-    holes = 0
     filled = []
-    for i in range(play_height -1, -1, -1,):
+    breaks = 0
+    for i in range(play_height -1, -1, -1):
         it_is_full = True
         prev_holes = holes
         for j in range (play_width):
             # if u ever becomes "x" during these searches, it means the hole it is checking is empty and it will be appended later in the method
             u = '_'
             # this if just checks outright if that position is empty
-            if grid[i][j] != 0:
+            if new_grid[i][j] != 0:
                 u = "x"
             # this check is for the 4x4 squares around the main position
             for ii in range(4):
@@ -277,7 +289,7 @@ def simulate(grid, x, y, play_width, play_height, current_piece, piece_fig):
                 breaks += 1
                 holes = prev_holes
 
-    return holes, play_height - height
+    return holes, play_height - height - breaks
 
 # Focusing on simulating each position 
 def best_rot_pos(grid, play_width, play_height, current_piece, piece_fig):
@@ -286,6 +298,7 @@ def best_rot_pos(grid, play_width, play_height, current_piece, piece_fig):
     best_height = play_height
     best_holes = play_height * play_width
     height = best_height
+    holes = 0
 
 
     for rotation in range(len(current_piece.shape)):
@@ -299,6 +312,7 @@ def best_rot_pos(grid, play_width, play_height, current_piece, piece_fig):
                 best_holes = holes
                 best_pos = j
                 best_rot = rotation
+
     return best_rot, best_pos
 
 
