@@ -108,101 +108,99 @@ T = [['.....',
 
 
 def grid_conversion(grid):
-
-
     rows = 20
     cols = 10
     newer_grid = [[0 for k in range(cols)] for j in range(rows)]
 
     new_grid = np.asarray(grid)
 
-    return newer_grid
+    return newer_grid, new_grid
 
 
-def fig_conversion(current_piece):
+def fig_conversion(piece):
     fig = []
+    current_piece = piece.shape[0]
     letter = ""
 
     fig = current_piece
 
     if current_piece == ['..0..' , '..0..' , '..0..' , '..0..' , '.....']:
         fig = [1, 5, 9, 13]
-        letter = I
+        letter = "I"
 
     if current_piece == ['.....' , '0000.' , '.....' , '.....' , '.....']:
         fig = [4, 5, 6, 7]
-        letter = I
+        letter = "I"
 
     if current_piece == ['.....' , '.....' , '..00.',  '.00..', '.....']:
         fig = [5, 6, 8, 9]
-        letter = S
+        letter = "S"
 
     if current_piece == ['.....' , '..0..' , '..00.' , '...0.' , '.....']:
         fig = [1, 5, 6, 10]
-        letter = S
+        letter = "S"
         
     if current_piece == ['.....' , '.....' , '.00..' , '..00.' , '.....']:
         fig = [5, 6, 10, 11]
-        letter = Z
+        letter = "Z"
 
     if current_piece == ['.....', '..0..', '.00..', '.0...', '.....']:
         fig = [1, 5, 4, 8]
-        letter = Z      
+        letter = "Z"      
 
     if current_piece == ['.....' , '.....' , '.00..' , '.00..' , '.....']:
         fig = [1, 2, 5, 6]
-        letter = O
+        letter = "O"
          
     if current_piece == ['.....', '..00.', '..0..', '..0..', '.....']:
         fig = [1, 2, 5, 9]
-        letter = J
+        letter = "J"
         
     if current_piece == ['.....', '.0...', '.000.', '.....', '.....']:
         fig = [0, 4, 5, 6] 
-        letter = J
+        letter = "J"
             
     if current_piece == ['.....', '..0..', '..0..', '.00..', '.....']:
         fig = [1, 5, 9, 8]
-        letter = J
+        letter = "J"
                 
     if current_piece == ['.....', '.....', '.000.', '...0.', '.....']:
         fig = [4, 5, 6, 10] 
-        letter = J
+        letter = "J"
 
     if current_piece == ['.....', '.00..', '..0..', '..0..', '.....']:
         fig = [1, 2, 6, 10]
-        letter = L
+        letter = "L"
 
     if current_piece == ['.....', '.....', '.000.', '.0...', '.....']:
         fig = [5, 6, 7, 9]
-        letter = L
+        letter = "L"
 
     if current_piece == ['.....', '..0..', '..0..', '..00.', '.....']:
         fig = [2, 6, 10, 11]
-        letter = L
+        letter = "L"
 
     if current_piece == ['.....', '...0.', '.000.', '.....', '.....']:
         fig = [3, 5, 6, 7]
-        letter = L
+        letter = "L"
 
     if current_piece == ['.....', '..0..', '.000.', '.....', '.....']:
         fig = [1, 4, 5, 6]
-        letter = T
+        letter = "T"
 
     if current_piece == ['.....', '..0..', '.00..', '..0..', '.....']:
         fig = [1, 4, 5, 9]
-        letter = T
+        letter = "T"
 
     if current_piece == ['.....', '.....', '.000.', '..0..', '.....']:
         fig = [4, 5, 6, 9]
-        letter = T
+        letter = "T"
 
     if current_piece == ['.....', '..0..' , '..00.' , '..0..' , '.....']:
         fig = [1, 5, 6, 9]
-        letter = T
+        letter = "T"
 
-    return fig, letter
-
+    return letter
 
 class Event():
     type = None
@@ -211,9 +209,11 @@ class Event():
     def __init__(self, type, key):
         self.type = type
         self.key = key
+
 holes = 0
 prev_holes = 0
 counter = 0
+
 # Basic function to make the AI rotate endlessly, at the moment is useful to test if the two files work well together.
 def run_ai(grid, play_width, play_height, current_piece):
     global counter
@@ -239,7 +239,7 @@ def will_it_fit(grid, x, y, play_width, play_height, current_piece, piece_fig):
 
     will_it_fit = False
     fig = fig_conversion(current_piece)
-    new_grid = grid_conversion(grid)
+    new_grid, a = grid_conversion(grid)
     # Check in a 4 by 4 square (i and j) to see if it is out of bounds or not
 
     # This loop checks if there is a single slot that the shape can fit into, if so then it can continue to testing that area.
@@ -265,7 +265,7 @@ def simulate(grid, x, y, play_width, play_height, current_piece, piece_fig):
     while not will_it_fit(grid, x, y, play_width, play_height, current_piece, piece_fig):
         y += 1
     y-= 1
-    new_grid = grid_conversion(grid)
+    new_grid, a = grid_conversion(grid)
     global holes
     height = play_height
     filled = []
@@ -327,7 +327,6 @@ def best_rot_pos(grid, play_width, play_height, current_piece, piece_fig):
                     best_rot = rotation
 
     return best_rot, best_pos
-
 
 
 #This is where the AI will control the Tetris game from
