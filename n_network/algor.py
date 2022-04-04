@@ -2,11 +2,11 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-from n_network.boardInfo import get_board_info
+from n_network.boardInfo import get_board_info #because it gets called from tetrisAI, so folder is needed
 # import pygame
 
 #NN config
-input_size = 9
+input_size = 8
 output_size = 1
 min_weights = -1
 max_weights = 1
@@ -20,6 +20,7 @@ device = 'cpu'
 
 
 class Network(nn.Module): #Class to contain the Network
+    #print(nn.Module)
     def __init__(self, output_w=None):
         super(Network, self).__init__()
         if not output_w:
@@ -34,6 +35,8 @@ class Network(nn.Module): #Class to contain the Network
     def activate(self, x):
         with torch.no_grad():
             x = torch.from_numpy(x).float().to(device)
+            #x = x.view(x.size(0), -1)
+
             x = self.output(x)
         return x
 
@@ -66,6 +69,7 @@ class Population:
             else:
                 a, b = np.random.choice(self.size, size=2, p=probs,
                                         replace=False)
+                                        
                 # Probability that each neuron will come from model A
                 prob_neuron_from_a = 0.5
 
@@ -98,8 +102,8 @@ def get_score(tetris, model):
     try: 
         inputs = get_board_info(area)
     except Exception as e:
-        print(e)
         return None
+    #print (inputs)
 
     output = model.activate(np.array(inputs))
 

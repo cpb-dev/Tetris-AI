@@ -1,28 +1,22 @@
 from datetime import datetime
 import io
 from wsgiref.validate import IteratorWrapper
+from matplotlib.pyplot import grid
 import pygame
 import pickle
 import numpy as np
 import torch
 import logging
-import sys
+import tkinter as tk
+from pynput.keyboard import Key, Controller
 
 from tetris import main, tetrisGame, findPiece
 from n_network.algor import get_score, Population
 from n_network.boardInfo import check_turns, make_move, press_btn, \
     check_needed_moves, feature_names
 from multiprocessing import Pool, cpu_count
+win = pygame.display.set_mode((800, 700))
 
-#save and load states, inspired by pyboy
-#def save_state(self, file_like_object):
-#    if isinstance(file_like_object, str):
-#        raise Exception("String not allowed. Did you specify a filepath instead of a file-like object?")
-#    self.mb.save_state(IteratorWrapper(file_like_object))
-#def load_state(self, file_like_object):
-#    if isinstance(file_like_object, str):
-#        raise Exception("String not allowed. Did you specify a filepath instead of a file-like object?")
-#    self.mb.load_state(IteratorWrapper(file_like_object))
 
 logger = logging.getLogger("tetris")
 logger.setLevel(logging.INFO)
@@ -37,22 +31,24 @@ logger.addHandler(ch)
 
 #Network config
 max_fitness = 0
-child_runs = 1
-max_score = 1000 # Can change
+child_runs = 3
+max_score = 10000 # Can change
 
-pop_size = 25
+pop_size = 10
 epochs = 50
 population = None
-n_workers = cpu_count()
+n_workers = 1
 
 def eval_network(epoch, child_index, child_model):
+    #tetris = os.startfile("tetris.py")
     tetris = tetrisGame()
+    keyboard = Controller()
     #tetrisGame()
 
     run = 0
     scores = []
-    levels =[]
-    lines = []
+    #levels =[]
+    #lines = []
 
     while run < child_runs:
         best_action_score = np.NINF
@@ -61,14 +57,16 @@ def eval_network(epoch, child_index, child_model):
         begin_state.seek(0)
         #save_state(begin_state)
 
-        block_tile = findPiece(main.current_piece) #main.c_piece()
-        print(block_tile)
+        block_tile, ngrid = main(win, 1, 0, 0)
+
+        
+        #print(block_tile)
         #getattr(main, 'piece_letter')
         turns = check_turns(block_tile)
         lefts, rights = check_needed_moves(block_tile)
 
-        for move_dir in make_move('Middle', tetris, n_dir = 1, n_turn = turns):
-            score = get_score(tetris, child_model)
+        for move_dir in make_move('Middle', ngrid, n_dir = 1, n_turn = turns):
+            score = get_score(ngrid, child_model)
             if score is not None and score >= best_action_score:
                 best_action_score = score
                 best_action = {'Turn': move_dir['Turn'], 
@@ -78,8 +76,8 @@ def eval_network(epoch, child_index, child_model):
             begin_state.seek(0)
             #load_state(begin_state)
         
-        for move_dir in make_move('Left', tetris, n_dir = lefts, n_turn = turns):
-            score = get_score(tetris, child_model)
+        for move_dir in make_move('Left', ngrid, n_dir = lefts, n_turn = turns):
+            score = get_score(ngrid, child_model)
             if score is not None and score >= best_action_score:
                 best_action_score = score
                 best_action = {'Turn': move_dir['Turn'], 
@@ -89,8 +87,8 @@ def eval_network(epoch, child_index, child_model):
             begin_state.seek(0)
             #load_state(begin_state)
 
-        for move_dir in make_move('Right', tetris, n_dir = rights, n_turn = turns):
-            score = get_score(tetris, child_model)
+        for move_dir in make_move('Right', ngrid, n_dir = rights, n_turn = turns):
+            score = get_score(ngrid, child_model)
             if score is not None and score >= best_action_score:
                 best_action_score = score
                 best_action = {'Turn': move_dir['Turn'], 
@@ -101,19 +99,29 @@ def eval_network(epoch, child_index, child_model):
             #load_state(begin_state)
 
         for _ in range (best_action['Turn']):
-            press_btn('Up')
+            keyboard.press(Key.up)
+            #keyboard.release(Key.up)
         for _ in range (best_action['Left']):
-            press_btn('Down')
+            keyboard.press(Key.left)
+            #keyboard.release(Key.left)
+            #press_btn('Left')
         for _ in range(best_action['Right']):
-            press_btn('Right')
-        press_btn('Space')
+            keyboard.press(Key.right)
+            #keyboard.release(Key.right)
+        #keyboard.press(Key.space)
+        #keyboard.release(Key.space)
+        #press_btn('Space')
 
-        if main.run == 'False' or main.score == max_score:
+        lost = main(win, 0, 1, 0)
+        last_score = main(win, 0, 0, 1)
+
+        if lost == False or last_score == max_score:
             scores.append(main.score)
             if run == child_runs - 1:
-                tetris.close()
+                tetris.destroy()
             else:
-                tetris.reset()
+                tetris.destroy()
+                tetris
             run += 1
 
     child_fitness = np.average(scores)
@@ -146,8 +154,8 @@ if __name__ == '__main__':
         result = [0] * pop_size
         for i in range(pop_size):
             result[i] = p.apply_async(
-                eval_network, (e, i, population.models[i]))
-
+                eval_network, (e, i, population.models[i])) 
+                
         for i in range(pop_size):
             population.fitnesses[i] = result[i].get()
 

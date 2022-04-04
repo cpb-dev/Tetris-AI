@@ -108,14 +108,15 @@ T = [['.....',
 
 
 def grid_conversion(grid):
+    #Converting grid within tetris to be Numpy
     rows = 20
     cols = 10
-    newer_grid = [[0 for k in range(cols)] for j in range(rows)]
+    
+    new_grid = np.asarray(grid) 
 
-    new_grid = np.asarray(grid)
+    return new_grid
 
-    return newer_grid, new_grid
-
+#newer_grid = [[0 for k in range(cols)] for j in range(rows)]
 
 def fig_conversion(piece):
     fig = []

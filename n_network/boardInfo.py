@@ -1,6 +1,6 @@
 import numpy as np
 import pygame
-from controlAI import grid_conversion
+#from controlAI import grid_conversion
 
 #Controls
 control_map = {
@@ -45,7 +45,7 @@ def get_board_info(area) : # can use tetris (the game wrapper) and lines in the 
 def get_peaks(area):
     #Peaks are the columns from top to bottom
     peaks = np.array([])
-    for col in range(area.shape[1]):
+    for col in range(area.shape[1]): #.shape[1]
         if 1 in area[:, col]:
             p = area.shape[0] - np.argmax(area[:, col], axis = 0)
             peaks = np.append(peaks, p)
@@ -59,7 +59,7 @@ def get_row_trans(area, highest_peak):
     
     for row in range(int(area.shape[0] - highest_peak), area.shape[0]):
         for col in range(1, area.shape[1]):
-            if area[row, col] != area[row, col] - 1:
+            if area[row, col].size != area[row, col].size - 1:
                 sum += 1
     
     return sum
@@ -70,7 +70,7 @@ def get_col_trans(area, peaks):
         if peaks[col] <= 1:
             continue
         for row in range(int(area.shape[0] - peaks[col]), area.shape[0] - 1):
-            if area[row, col] != area[row + 1, col]:
+            if area[row, col].size != area[row + 1, col].size:
                 sum += 1
     return sum
 
@@ -136,6 +136,7 @@ def press_btn(action):
     #Simulates a keypress using pygame
     pygame.KEYDOWN
     control_map[action]
+    pygame.KEYUP
 
 def make_move(action, tetris, n_dir, n_turn):
     for dir_count in range(1, n_dir + 1):
