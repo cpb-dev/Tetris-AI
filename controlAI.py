@@ -106,103 +106,102 @@ T = [['.....',
       '..0..',
       '.....']]
 
-
+# Grid conversion takes the tuple from tetris and either converts it into numpy array or basic 20x10 array to be used elsewhere
 def grid_conversion(grid):
-
-
     rows = 20
     cols = 10
     newer_grid = [[0 for k in range(cols)] for j in range(rows)]
 
     new_grid = np.asarray(grid)
 
-    return newer_grid
+    return newer_grid, new_grid
 
 
-def fig_conversion(current_piece):
+# Bit of a mess, but just pass through the current piece and it will give the letter that corresponds to it.
+def fig_conversion(piece):
     fig = []
+    current_piece = piece.shape[0]
     letter = ""
 
     fig = current_piece
 
     if current_piece == ['..0..' , '..0..' , '..0..' , '..0..' , '.....']:
         fig = [1, 5, 9, 13]
-        letter = I
+        letter = "I"
 
     if current_piece == ['.....' , '0000.' , '.....' , '.....' , '.....']:
         fig = [4, 5, 6, 7]
-        letter = I
+        letter = "I"
 
     if current_piece == ['.....' , '.....' , '..00.',  '.00..', '.....']:
         fig = [5, 6, 8, 9]
-        letter = S
+        letter = "S"
 
     if current_piece == ['.....' , '..0..' , '..00.' , '...0.' , '.....']:
         fig = [1, 5, 6, 10]
-        letter = S
+        letter = "S"
         
     if current_piece == ['.....' , '.....' , '.00..' , '..00.' , '.....']:
         fig = [5, 6, 10, 11]
-        letter = Z
+        letter = "Z"
 
     if current_piece == ['.....', '..0..', '.00..', '.0...', '.....']:
         fig = [1, 5, 4, 8]
-        letter = Z      
+        letter = "Z"      
 
     if current_piece == ['.....' , '.....' , '.00..' , '.00..' , '.....']:
         fig = [1, 2, 5, 6]
-        letter = O
+        letter = "O"
          
     if current_piece == ['.....', '..00.', '..0..', '..0..', '.....']:
         fig = [1, 2, 5, 9]
-        letter = J
+        letter = "J"
         
     if current_piece == ['.....', '.0...', '.000.', '.....', '.....']:
         fig = [0, 4, 5, 6] 
-        letter = J
+        letter = "J"
             
     if current_piece == ['.....', '..0..', '..0..', '.00..', '.....']:
         fig = [1, 5, 9, 8]
-        letter = J
+        letter = "J"
                 
     if current_piece == ['.....', '.....', '.000.', '...0.', '.....']:
         fig = [4, 5, 6, 10] 
-        letter = J
+        letter = "J"
 
     if current_piece == ['.....', '.00..', '..0..', '..0..', '.....']:
         fig = [1, 2, 6, 10]
-        letter = L
+        letter = "L"
 
     if current_piece == ['.....', '.....', '.000.', '.0...', '.....']:
         fig = [5, 6, 7, 9]
-        letter = L
+        letter = "L"
 
     if current_piece == ['.....', '..0..', '..0..', '..00.', '.....']:
         fig = [2, 6, 10, 11]
-        letter = L
+        letter = "L"
 
     if current_piece == ['.....', '...0.', '.000.', '.....', '.....']:
         fig = [3, 5, 6, 7]
-        letter = L
+        letter = "L"
 
     if current_piece == ['.....', '..0..', '.000.', '.....', '.....']:
         fig = [1, 4, 5, 6]
-        letter = T
+        letter = "T"
 
     if current_piece == ['.....', '..0..', '.00..', '..0..', '.....']:
         fig = [1, 4, 5, 9]
-        letter = T
+        letter = "T"
 
     if current_piece == ['.....', '.....', '.000.', '..0..', '.....']:
         fig = [4, 5, 6, 9]
-        letter = T
+        letter = "T"
 
     if current_piece == ['.....', '..0..' , '..00.' , '..0..' , '.....']:
         fig = [1, 5, 6, 9]
-        letter = T
+        letter = "T"
 
-    return fig, letter
-
+    return letter
 
 class Event():
     type = None
@@ -211,20 +210,25 @@ class Event():
     def __init__(self, type, key):
         self.type = type
         self.key = key
+
+# Global variables due to some issues with the code not recognising it as a local variable (despite it being initialised in the function)
 holes = 0
 prev_holes = 0
 counter = 0
+
 # Basic function to make the AI rotate endlessly, at the moment is useful to test if the two files work well together.
 def run_ai(grid, play_width, play_height, current_piece):
     global counter
     counter += 1
     global holes
     holes = 0
+    # Get the figure for the shape or the letter depending on what is needed
     piece_fig, letter = fig_conversion(current_piece)
     play_height = 20
     play_width = 10
 
     # Depending on your PC this counter rate may need to be adjusted. More if system is faster and vice versa 
+    # limits how often it makes moves, not to make it too quick
     if counter < 50:
         return []
     counter = 0
@@ -239,7 +243,7 @@ def will_it_fit(grid, x, y, play_width, play_height, current_piece, piece_fig):
 
     will_it_fit = False
     fig = fig_conversion(current_piece)
-    new_grid = grid_conversion(grid)
+    new_grid, a = grid_conversion(grid)
     # Check in a 4 by 4 square (i and j) to see if it is out of bounds or not
 
     # This loop checks if there is a single slot that the shape can fit into, if so then it can continue to testing that area.
@@ -265,7 +269,7 @@ def simulate(grid, x, y, play_width, play_height, current_piece, piece_fig):
     while not will_it_fit(grid, x, y, play_width, play_height, current_piece, piece_fig):
         y += 1
     y-= 1
-    new_grid = grid_conversion(grid)
+    new_grid, a = grid_conversion(grid)
     global holes
     height = play_height
     filled = []
@@ -304,7 +308,7 @@ def simulate(grid, x, y, play_width, play_height, current_piece, piece_fig):
 
     return holes, play_height - height - breaks
 
-# Focusing on simulating each position 
+# Focusing on checking the bottom of the grid in order to see if there are any shapes in it
 def best_rot_pos(grid, play_width, play_height, current_piece, piece_fig):
     best_pos = None
     best_rot = None
@@ -313,14 +317,14 @@ def best_rot_pos(grid, play_width, play_height, current_piece, piece_fig):
     height = best_height
     holes = 0
 
-
+    
     for rotation in range(len(current_piece.shape)):
         fig_shape = current_piece.shape[rotation]
-        for j in range (-3, play_width):
-            if not will_it_fit(grid, j, 0, play_width, play_height, fig_shape, piece_fig):
-                holes, height = simulate(grid, j, 0, play_width, play_height, fig_shape, piece_fig)
+        for j in range (-3, play_width): # check the bottom of the grid and sweep from left to right
+            if not will_it_fit(grid, j, 0, play_width, play_height, fig_shape, piece_fig): # Go to next step if not empty at the bottom
+                holes, height = simulate(grid, j, 0, play_width, play_height, fig_shape, piece_fig) # Check how many holes present in the grid
             if best_pos is None or best_holes > holes or \
-                best_holes == holes and best_height > height:
+                best_holes == holes and best_height > height: # changing the position it wants to be in to return to the main function
                     best_height = height
                     best_holes = holes
                     best_pos = j
@@ -329,8 +333,4 @@ def best_rot_pos(grid, play_width, play_height, current_piece, piece_fig):
     return best_rot, best_pos
 
 
-
 #This is where the AI will control the Tetris game from
-
-#TODO: Access the current status of the board
-#TODO: Based on current block assess best placement
